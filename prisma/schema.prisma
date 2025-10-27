@@ -1,0 +1,98 @@
+//Isso é um arquivo chamado 'schema.prisma'
+
+// Você deve configurar o seu 'datasource' para o banco que o Railway está usando
+// Exemplo para MySQL (comumente usado no Railway):
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL") // A URL de conexão é geralmente passada por uma variável de ambiente no Railway
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ---------------------------
+// Definição da tabela Usuario
+// ---------------------------
+model Usuario {
+  // NomeID INT AUTO_INCREMENT PRIMARY KEY
+  nomeID         Int      @id @default(autoincrement()) @map("NomeID")
+  
+  // Nome VARCHAR(100) NOT NULL
+  nome           String   @db.VarChar(100) @map("Nome")
+  
+  // Email VARCHAR(255) NOT NULL UNIQUE
+  email          String   @unique @db.VarChar(255) @map("Email")
+  
+  // PasswordHash VARCHAR(255) NOT NULL
+  passwordHash   String   @db.VarChar(255) @map("PasswordHash")
+  
+  // CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  createdAt      DateTime @default(now()) @map("CreatedAt")
+
+  // Relacionamentos: Um usuário pode ter vários resultados e vários tokens
+  resultados     Resultado[]
+  resetTokens    PasswordResetToken[]
+
+  // Define o nome da tabela no banco de dados (opcional, mas bom para seguir o padrão SQL)
+  @@map("Usuario")
+}
+
+// ---------------------------
+// Definição da tabela Resultado
+// ---------------------------
+model Resultado {
+  // ResultadoID INT AUTO_INCREMENT PRIMARY KEY
+  resultadoID Int @id @default(autoincrement()) @map("ResultadoID")
+  
+  // Pontuacao INT NOT NULL
+  pontuacao   Int @map("Pontuacao")
+  
+  // Data DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  data        DateTime @default(now()) @map("Data")
+  
+  // Acertos INT NOT NULL
+  acertos     Int @map("Acertos")
+  
+  // Erros INT NOT NULL
+  erros       Int @map("Erros")
+
+  // FOREIGN KEY (NomeID) REFERENCES Usuario(NomeID) ON DELETE CASCADE ON UPDATE CASCADE
+  nomeID      Int @map("NomeID")
+  usuario     Usuario @relation(fields: [nomeID], references: [nomeID], onDelete: Cascade, onUpdate: Cascade)
+
+  // Define o nome da tabela no banco de dados
+  @@map("Resultado")
+}
+
+// ---------------------------
+// Definição da tabela PasswordResetToken
+// ---------------------------
+model PasswordResetToken {
+  // TokenID INT AUTO_INCREMENT PRIMARY KEY
+  tokenID   Int      @id @default(autoincrement()) @map("TokenID")
+  
+  // Token VARCHAR(255) NOT NULL UNIQUE
+  token     String   @unique @db.VarChar(255) @map("Token")
+  
+  // ExpiresAt DATETIME NOT NULL
+  expiresAt DateTime @map("ExpiresAt")
+  
+  // Used TINYINT(1) NOT NULL DEFAULT 0 (boolean é o tipo mais adequado no Prisma)
+  used      Boolean  @default(false) @map("Used")
+  
+  // CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  createdAt DateTime @default(now()) @map("CreatedAt")
+
+  // FOREIGN KEY (NomeID) REFERENCES Usuario(NomeID) ON DELETE CASCADE ON UPDATE CASCADE
+  nomeID    Int @map("NomeID")
+  usuario   Usuario @relation(fields: [nomeID], references: [nomeID], onDelete: Cascade, onUpdate: Cascade)
+
+  // INDEX idx_prt_token ON PasswordResetToken(Token)
+  // O índice para 'token' já foi criado implicitamente pela cláusula '@unique',
+  // mas você pode adicioná-lo explicitamente se necessário (abaixo).
+  @@index([token]) // Isso é o que você queria com "CREATE INDEX idx_prt_token ON PasswordResetToken(Token)"
+  
+  // Define o nome da tabela no banco de dados
+  @@map("PasswordResetToken")
+}
