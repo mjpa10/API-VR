@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "prisma:migration": "npx prisma migrate dev --name init",
-    "start": "npm run prisma:migration && node index.js"
-  },
+  "prisma:migrate": "npx prisma migrate deploy",
+  "start": "npm run prisma:migrate && node index.js"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
