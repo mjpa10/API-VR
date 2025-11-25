@@ -200,10 +200,42 @@ app.get("/usuarios/:nomeID/resultados", async (req, res) => {
   }
 });
 
-app.get("/resultados", async (req, res) => {
-  const resultado = await prisma.resultado.findMany();
-  res.json(resultado);
+// LOGIN - POST /login
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email e senha são obrigatórios" });
+  }
+
+  try {
+    const usuario = await prisma.usuario.findUnique({
+      where: { email },
+    });
+
+    if (!usuario) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    const senhaCorreta = await bcrypt.compare(password, usuario.passwordHash);
+
+    if (!senhaCorreta) {
+      return res.status(401).json({ error: "Senha incorreta." });
+    }
+
+    return res.json({
+      message: "Login realizado com sucesso!",
+      nomeID: usuario.nomeID,
+      nome: usuario.nome,
+      email: usuario.email
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Erro no servidor ao fazer login." });
+  }
 });
+
 
 // ------------------------------------------
 // INICIALIZAÇÃO DO SERVIDOR
