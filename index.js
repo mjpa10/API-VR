@@ -2,9 +2,18 @@ const express = require("express");
 const { PrismaClient } = require("@prisma/client");
 // O bcrypt é crucial para garantir que você não armazene senhas em texto puro!
 const bcrypt = require("bcrypt"); 
+const cors = require("cors");
 
 const app = express();
 const prisma = new PrismaClient();
+
+app.use(cors({
+  origin: "*", // ou: "https://sigma-firetech.netlify.app"
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.options("*", cors());
 
 app.use(express.json());
 
